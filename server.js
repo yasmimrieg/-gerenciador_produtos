@@ -1,8 +1,13 @@
+
+//BIBLIOTECAS
 import Fastify from 'fastify'
 import { Pool } from 'pg'
 import fastifyStatic from '@fastify/static'
 import path from 'path'
 import { fileURLToPath } from 'url'
+
+
+//DB
 const servidor = Fastify()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -11,16 +16,20 @@ const sql = new Pool({
  password: 'senai',
  host: 'localhost',
  port: 5432,
- database: 'produtos_db'
-})
+ database: 'gerenciamento-db'
+});
+
+//ROTAS
 servidor.register(fastifyStatic, {
  root: path.join(__dirname, 'public'),
  prefix: '/'
-})
+});
+
 servidor.get('/api/produtos', async () => {
  const resultado = await sql.query('SELECT * FROM produtos ORDER BY id')
  return resultado.rows
-})
+});
+
 servidor.post('/api/produtos', async (request, reply) => {
  const { nome, preco, quantidade, categoria } = request.body
  if (!nome || preco === undefined || quantidade === undefined) {
@@ -33,7 +42,8 @@ servidor.post('/api/produtos', async (request, reply) => {
  [nome, preco, quantidade, categoria]
  )
  return reply.status(201).send({ mensagem: 'Produto cadastrado com sucesso!' })
-})
+});
+
 servidor.put('/api/produtos/:id', async (request, reply) => {
     const { id } = request.params
  const { nome, preco, quantidade, categoria } = request.body
@@ -51,7 +61,8 @@ servidor.put('/api/produtos/:id', async (request, reply) => {
  [nome, preco, quantidade, categoria, id]
  )
  return { mensagem: 'Produto alterado com sucesso!' }
-})
+});
+
 servidor.delete('/api/produtos/:id', async (request, reply) => {
  const { id } = request.params
  const busca = await sql.query('SELECT * FROM produtos WHERE id = $1', [id])
@@ -60,5 +71,7 @@ servidor.delete('/api/produtos/:id', async (request, reply) => {
  }
  await sql.query('DELETE FROM produtos WHERE id = $1', [id])
  return reply.status(204).send()
-})
-servidor.listen({ port: 3000 })
+});
+
+//SERVIDOR
+servidor.listen({ port:3333})
